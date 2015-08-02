@@ -8,9 +8,9 @@ var Table = {
     show: {
         limit: 100,
         rowHeight: 30,
-        position: 0,
+        buffer: 0,
         height:null,
-        buffer:0,
+        position:0,
         header: {
             container: null,
             columns: null
@@ -93,41 +93,37 @@ var Table = {
         this.show.header.container.appendChild(this.show.header.columns);
     },
     _renderData: function (direction) {
-        //var t = new Date();
-        var downState = this.show.position;
+        var downState = this.show.buffer;
         if (direction === 'up') {
-            this.show.position = this.show.buffer - this.show.limit + (this.show.height * 2);
-            this.show.position = this.show.position < 0 ? 0 : this.show.position;
-            if (downState === this.show.position) {
+            this.show.buffer = this.show.position - this.show.limit + (this.show.height * 2);
+            this.show.buffer = this.show.buffer < 0 ? 0 : this.show.buffer;
+            if (downState === this.show.buffer) {
                 return;
             }
         } else if (direction === 'down') {
-            this.show.position =
-                this.show.buffer > this.data.length - this.show.limit ?
+            this.show.buffer =
+                this.show.position > this.data.length - this.show.limit ?
                     this.data.length - this.show.limit :
-                    this.show.buffer - this.show.height;
-            if (downState === this.show.position) {
+                    this.show.position - this.show.height;
+            if (downState === this.show.buffer) {
                 return;
             }
         }
 
-
-
         this.show.data.container.style.height = this.data.length * this.show.rowHeight + 'px';
         this.show.header.container.style.width = this.show.data.container.clientWidth + 'px';
-        this.show.data.before.style.height = this.show.position * this.show.rowHeight + 'px';
-        this.show.data.after.style.height = (this.data.length - this.show.position - this.show.limit) * this.show.rowHeight + 'px';
+        this.show.data.before.style.height = this.show.buffer * this.show.rowHeight + 'px';
+        this.show.data.after.style.height = (this.data.length - this.show.buffer - this.show.limit) * this.show.rowHeight + 'px';
         this.show.data.table.innerHTML = '';
         var rows = document.createElement('tbody');
         var width = Math.floor(this.show.data.container.clientWidth / this.schema.length) -1 ;
-        for (var i = this.show.position; i < this.show.position + this.show.limit; i++) {
+        for (var i = this.show.buffer; i < this.show.buffer + this.show.limit; i++) {
             if (i>=Table.data.length) {
                 console.log('alert', i); return;
             }
             var row = document.createElement('tr');
             this.schema.forEach(function (value) {
                 var item = document.createElement('td');
-                //item.style.width =  + '%';
 
                 var data = Table.data[i][value.name];
                 if (/^(M|F)$/i.test(data)) {
@@ -141,17 +137,15 @@ var Table = {
         this.show.data.table.appendChild(rows);
     },
     viewScroll: function () {
-        Table.show.buffer = Math.abs(Math.ceil($(Table.show.data.container).position().top / Table.show.rowHeight));
-        //console.log(Table.show.buffer);
+        Table.show.position = Math.abs(Math.ceil($(Table.show.data.container).position().top / Table.show.rowHeight));
         var range = {
-            top: Table.show.position,
-            bottom: Table.show.position + Table.show.limit
+            top: Table.show.buffer,
+            bottom: Table.show.buffer + Table.show.limit
         };
         var visRange = {
-            top: Table.show.buffer - Table.show.height >= 0 ? Table.show.buffer - Table.show.height : 0,
-            bottom: Table.show.buffer + (Table.show.height * 2)
+            top: Table.show.position - Table.show.height >= 0 ? Table.show.position - Table.show.height : 0,
+            bottom: Table.show.position + (Table.show.height * 2)
         };
-        //console.log('scroll', range.top, range.bottom, visRange.top, visRange.bottom);
         var direction =
             visRange.bottom > range.bottom ?
                 'down' :
@@ -160,11 +154,9 @@ var Table = {
                     false;
         if (direction) {
             Table._renderData(direction);
-            //console.log('loading', direction, range.top, range.bottom, visRange.top, visRange.bottom);
             console.log('loading', direction);
         }
-    }
-    ,
+    },
     init: function (containerId) {
         this.view = document.getElementById(containerId);
         this.show.header.container = this.view.querySelector('.header');
