@@ -34,7 +34,7 @@ var Table = {
     }, {
         name: 'email',
         sortable: true,
-        format: 'hyperlink'
+        format: 'mailto'
     }, {
         name: 'country',
         sortable: true,
@@ -64,6 +64,31 @@ var Table = {
         sortable: true,
         format: 'roundnumber'
     }],
+    formatTypes: {
+        roundnumber: function (number) {
+            return this.number(this.round(number));
+        },
+        round: function (number) {
+            return Math.round(number);
+        },
+        number: function (value) {
+            var color = value < 0 ? 'number-negative' : 'number-positive';
+            return '<span class="' + color + '">' + value + '</span>';
+        },
+        hyperlink: function (link, text) {
+            text = text || link;
+            return '<a href="' + link + '">' + text + '</a>';
+        },
+        mailto: function (mail) {
+            return this.hyperlink('mailto:' + mail, mail);
+        },
+        boolean: function (value) {
+            return value ? 'Да' : 'Нет';
+        }
+    },
+    format: function (type, value) {
+        return this.formatTypes[type] ? this.formatTypes[type](value) : value;
+    },
     view: null,
     loadData: function () {
         jQuery.ajax({
@@ -128,6 +153,9 @@ var Table = {
                 var data = Table.data[i][value.name];
                 if (/^(M|F)$/i.test(data)) {
                     data = i;
+                }
+                if (value.format) {
+                    data = Table.format(value.format, data);
                 }
                 item.innerHTML = '<span class="cell-data" style="width:' + width + 'px;">' + data + '</span>';
                 row.appendChild(item);

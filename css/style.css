@@ -61,3 +61,10 @@ html, body {
 .header .sortable span{
     cursor: pointer;
 }
+
+.number-negative {
+    color: #66f;
+}
+.number-positive {
+    color: #f66;
+}
