@@ -32,6 +32,10 @@ var Table = {
         sortable: true,
         format: false
     }, {
+        name: 'last_name',
+        sortable: true,
+        format: false
+    }, {
         name: 'email',
         sortable: true,
         format: 'mailto'
