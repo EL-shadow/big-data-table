@@ -9,8 +9,8 @@ var Table = {
         limit: 100,
         rowHeight: 30,
         buffer: 0,
-        height:null,
-        position:0,
+        height: null,
+        position: 0,
         header: {
             container: null,
             columns: null
@@ -22,48 +22,95 @@ var Table = {
             after: null
         }
     },
+    sort: {
+        field: null,
+        ascend: true
+    },
+    sortData: function (field) {
+        var column = this.schema.filter(function (item) {
+            return item.name === field;
+        });
+        if (!column.length || !column[0].sortable) {
+            return false;
+        }
+        column = column[0];
+        if (this.sort.field == field) {
+            this.sort.ascend = !this.sort.ascend;
+        }
+        this.sort.field = field;
+        var ascend = this.sort.ascend;
+        var sortLike = column.sortLike;
+
+        var methods = {
+            number: parseFloat
+        };
+        var key = methods[sortLike] ?
+            function (x) {
+                return methods[sortLike](x[field]);
+            } :
+            function (x) {
+                return x[field];
+            };
+
+        ascend = ascend ? 1 : -1;
+
+        this.data.sort(function (a, b) {
+            a = key(a);
+            b = key(b);
+            return ascend * ((a > b) - (b > a));
+        });
+        this._renderData();
+        return true;
+    },
     schema: [
         {
-        name: 'gender',
-        sortable: false,
-        format: false
-    }, {
-        name: 'first_name',
-        sortable: true,
-        format: false
-    }, {
-        name: 'email',
-        sortable: true,
-        format: 'mailto'
-    }, {
-        name: 'country',
-        sortable: true,
-        format: false
-    }, {
-        name: 'ip_address',
-        sortable: false,
-        format: false
-    }, {
-        name: 'married',
-        sortable: false,
-        format: 'boolean'
-    }, {
-        name: 'debet',
-        sortable: true,
-        format: 'number'
-    }, {
-        name: 'geo-latitude',
-        sortable: false,
-        format: false
-    }, {
-        name: 'geo-longitude',
-        sortable: false,
-        format: false
-    }, {
-        name: 'number',
-        sortable: true,
-        format: 'roundnumber'
-    }],
+            name: 'gender',
+            sortable: false,
+            format: false
+        }, {
+            name: 'first_name',
+            sortable: true,
+            format: false
+        }, {
+            name: 'last_name',
+            sortable: true,
+            format: false
+        }, {
+            name: 'email',
+            sortable: true,
+            format: 'mailto'
+        }, {
+            name: 'country',
+            sortable: true,
+            format: false
+        }, {
+            name: 'ip_address',
+            sortable: false,
+            format: false
+        }, {
+            name: 'married',
+            sortable: false,
+            format: 'boolean'
+        }, {
+            name: 'debet',
+            sortable: true,
+            sortLike: 'number',
+            format: 'number'
+        }, {
+            name: 'geo-latitude',
+            sortable: false,
+            format: false
+        }, {
+            name: 'geo-longitude',
+            sortable: false,
+            format: false
+        }, {
+            name: 'number',
+            sortable: true,
+            sortLike: 'number',
+            format: 'roundnumber'
+        }
+    ],
     formatTypes: {
         roundnumber: function (number) {
             return this.number(this.round(number));
@@ -107,6 +154,7 @@ var Table = {
         var width = 100 / this.schema.length;
         this.schema.forEach(function (column) {
             var cell = document.createElement('th');
+            cell.setAttribute('data-schema-name', column.name);
             if (column.sortable) {
                 cell.className = 'sortable';
             }
@@ -116,6 +164,13 @@ var Table = {
             cell.innerHTML = column.name;
         });
         this.show.header.container.appendChild(this.show.header.columns);
+        $('.sortable').on('click', function () {
+            if (Table.sortData(this.getAttribute('data-schema-name'))) {
+                $('.sortable.sorted-ascend, .sortable.sorted-descend').removeClass('sorted-ascend sorted-descend');
+                var ascend = Table.sort.ascend ? 'ascend' : 'descend';
+                $(this).addClass('sorted-' + ascend);
+            }
+        });
     },
     _renderData: function (direction) {
         var downState = this.show.buffer;
@@ -141,10 +196,11 @@ var Table = {
         this.show.data.after.style.height = (this.data.length - this.show.buffer - this.show.limit) * this.show.rowHeight + 'px';
         this.show.data.table.innerHTML = '';
         var rows = document.createElement('tbody');
-        var width = Math.floor(this.show.data.container.clientWidth / this.schema.length) -1 ;
+        var width = Math.floor(this.show.data.container.clientWidth / this.schema.length) - 1;
         for (var i = this.show.buffer; i < this.show.buffer + this.show.limit; i++) {
-            if (i>=Table.data.length) {
-                console.log('alert', i); return;
+            if (i >= Table.data.length) {
+                console.log('alert', i);
+                return;
             }
             var row = document.createElement('tr');
             this.schema.forEach(function (value) {

@@ -68,3 +68,10 @@ html, body {
 .number-positive {
     color: #f66;
 }
+
+.sorted-ascend:after {
+    content: ' ▴';
+}
+.sorted-descend:after {
+    content: ' ▾';
+}
