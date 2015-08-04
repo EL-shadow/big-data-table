@@ -26,7 +26,7 @@ var Table = {
         field: null,
         ascend: true
     },
-    sortData: function (field) {
+    sortData: function (field, setAscend) {
         var column = this.schema.filter(function (item) {
             return item.name === field;
         });
@@ -34,8 +34,12 @@ var Table = {
             return false;
         }
         column = column[0];
-        if (this.sort.field == field) {
-            this.sort.ascend = !this.sort.ascend;
+        if (setAscend !== undefined) {
+            this.sort.ascend = setAscend;
+        } else {
+            if (this.sort.field === field) {
+                this.sort.ascend = !this.sort.ascend;
+            }
         }
         this.sort.field = field;
         var ascend = this.sort.ascend;
@@ -143,7 +147,11 @@ var Table = {
             method: 'GET',
             success: function (data) {
                 Table.data = Table.data.concat(data);
-                Table._renderData();
+                if (Table.sort.field) {
+                    Table.sortData(Table.sort.field, Table.sort.ascend);
+                } else {
+                    Table._renderData();
+                }
                 Table.part++;
             }
         });
