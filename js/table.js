@@ -64,6 +64,10 @@ var Table = {
             return ascend * ((a > b) - (b > a));
         });
         this._renderData();
+        $('.sortable.sorted-ascend, .sortable.sorted-descend').removeClass('sorted-ascend sorted-descend');
+        var ascendClass = Table.sort.ascend ? 'ascend' : 'descend';
+        $('[data-schema-name="' + field + '"]').addClass('sorted-' + ascendClass);
+        this._saveSettings();
         return true;
     },
     schema: [
@@ -115,6 +119,18 @@ var Table = {
             format: 'roundnumber'
         }
     ],
+    _saveSettings: function () {
+        if (window.localStorage) {
+            localStorage.tableSchema = JSON.stringify(this.schema);
+            localStorage.tableSort = JSON.stringify(this.sort);
+        }
+    },
+    _readSettings: function () {
+        if (window.localStorage && localStorage.tableSchema && localStorage.tableSort) {
+            this.schema = JSON.parse(localStorage.tableSchema);
+            this.sort = JSON.parse(localStorage.tableSort);
+        }
+    },
     formatTypes: {
         roundnumber: function (number) {
             return this.number(this.round(number));
@@ -173,11 +189,7 @@ var Table = {
         });
         this.show.header.container.appendChild(this.show.header.columns);
         $('.sortable').on('click', function () {
-            if (Table.sortData(this.getAttribute('data-schema-name'))) {
-                $('.sortable.sorted-ascend, .sortable.sorted-descend').removeClass('sorted-ascend sorted-descend');
-                var ascend = Table.sort.ascend ? 'ascend' : 'descend';
-                $(this).addClass('sorted-' + ascend);
-            }
+            Table.sortData(this.getAttribute('data-schema-name'));
         });
     },
     _renderData: function (direction) {
@@ -258,6 +270,7 @@ var Table = {
         this.show.data.before = this.show.data.container.querySelector('.before');
         this.show.data.table = this.show.data.container.querySelector('.data-table');
         this.show.data.after = this.show.data.container.querySelector('.after');
+        this._readSettings();
         this._renderHeader();
         this.loadData();
     }
