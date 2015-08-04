@@ -11,6 +11,7 @@ var Table = {
         buffer: 0,
         height: null,
         position: 0,
+        loadMore: false,
         header: {
             container: null,
             columns: null
@@ -169,6 +170,7 @@ var Table = {
                     Table._renderData();
                 }
                 Table.part++;
+                $('.show-load-more').removeClass('show-load-more');
             }
         });
     },
@@ -260,6 +262,10 @@ var Table = {
             Table._renderData(direction);
             console.log('loading', direction);
         }
+        if (direction === 'down' || Table.show.loadMore) {
+            Table.show.loadMore = visRange.bottom > Table.data.length;
+            $(Table.view).toggleClass('show-load-more', Table.show.loadMore);
+        }
     },
     init: function (containerId) {
         this.view = document.getElementById(containerId);
@@ -267,6 +273,9 @@ var Table = {
         this.show.data.container = this.view.querySelector('.container');
         this.show.height = Math.floor(this.view.querySelector('.data').clientHeight / this.show.rowHeight);
         $('.data').on('scroll', this.viewScroll);
+        $('.load-more').on('click',function(){
+            Table.loadData.call(Table);
+        });
         this.show.data.before = this.show.data.container.querySelector('.before');
         this.show.data.table = this.show.data.container.querySelector('.data-table');
         this.show.data.after = this.show.data.container.querySelector('.after');
