@@ -174,11 +174,55 @@ var Table = {
             }
         });
     },
+    columnShowChange: function (name, show) {
+        var column = this.schema.filter(function (item) {
+            return item.name === name;
+        });
+        if (!column.length) {
+            return false;
+        }
+        column = column[0];
+        column.hide = !show;
+        this._saveSettings();
+        //$('.settings').removeClass('open');
+        this._renderHeader();
+        this._renderData();
+    },
+    _renderMenu: function () {
+        var menu = document.createElement('div');
+        menu.className = 'menu';
+        this.schema.forEach(function (column, index) {
+            var menuItem = document.createElement('div');
+            if (index === 0) {
+                menuItem.innerHTML = '<div>' + column.name + '</div>';
+            } else {
+                var checked = column.hide ? '' : 'checked';
+                menuItem.innerHTML = '<label><input class="column-show" type="checkbox" ' + checked + ' value="' + column.name + '"> ' + column.name + '</label>';
+            }
+            menu.appendChild(menuItem);
+        });
+        var settings = $('<div class="settings">&#x2630;</div>')[0];
+        settings.appendChild(menu);
+        this.show.header.container.appendChild(settings);
+        $('.settings').on('click', function () {
+            $(this).toggleClass('open').hasClass('open');
+        }).children().on('click', function (e) {
+            e.stopPropagation();
+        }).find('.column-show').on('change', function () {
+            Table.columnShowChange(this.value, this.checked);
+        });
+    },
     _renderHeader: function () {
+        if (this.show.header.columns) {
+            this.show.header.container.removeChild(this.show.header.columns);
+        }
         this.show.header.columns = document.createElement('table');
         var row = this.show.header.columns.appendChild(document.createElement('tr'));
-        var width = 100 / this.schema.length;
-        this.schema.forEach(function (column) {
+        var schema = this.schema.filter(function (item) {
+            return !item.hide;
+        });
+        var width = 100 / schema.length;
+        schema.forEach(function (column) {
             var cell = document.createElement('th');
             cell.setAttribute('data-schema-name', column.name);
             if (column.sortable) {
@@ -212,20 +256,25 @@ var Table = {
             }
         }
 
+        var schema = this.schema.filter(function (item) {
+            return !item.hide;
+        });
         this.show.data.container.style.height = this.data.length * this.show.rowHeight + 'px';
-        this.show.header.container.style.width = this.show.data.container.clientWidth + 'px';
+        this.show.header.columns.style.width = this.show.data.container.clientWidth + 'px';
+        this.show.header.container.querySelector('.settings').style.width = Table.show.header.container.clientWidth - this.show.data.container.clientWidth + 'px';
         this.show.data.before.style.height = this.show.buffer * this.show.rowHeight + 'px';
         this.show.data.after.style.height = (this.data.length - this.show.buffer - this.show.limit) * this.show.rowHeight + 'px';
         this.show.data.table.innerHTML = '';
         var rows = document.createElement('tbody');
-        var width = Math.floor(this.show.data.container.clientWidth / this.schema.length) - 1;
+        var width = Math.floor(this.show.data.container.clientWidth / schema.length) - 1;
+        $(this.show.header.columns).find('th').css('width', width + 'px');
         for (var i = this.show.buffer; i < this.show.buffer + this.show.limit; i++) {
             if (i >= Table.data.length) {
                 console.log('alert', i);
                 return;
             }
             var row = document.createElement('tr');
-            this.schema.forEach(function (value) {
+            schema.forEach(function (value) {
                 var item = document.createElement('td');
 
                 var data = Table.data[i][value.name];
@@ -280,6 +329,7 @@ var Table = {
         this.show.data.table = this.show.data.container.querySelector('.data-table');
         this.show.data.after = this.show.data.container.querySelector('.after');
         this._readSettings();
+        this._renderMenu();
         this._renderHeader();
         this.loadData();
     }
