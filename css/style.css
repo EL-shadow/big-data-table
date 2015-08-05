@@ -109,3 +109,37 @@ html, body {
     bottom: -50px;
     height: 50px;
 }
+
+.header .settings {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 30px;
+    background: #ddd;
+    text-align: center;
+    text-shadow: 0 1px 2px #FFFFFF;
+    font-weight: bold;
+    font-size: 17px;
+    line-height: 30px;
+    cursor: pointer;
+}
+
+.settings .menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 2;
+    display: none;
+    padding: 4px;
+    border-radius: 4px;
+    background-color: #fff;
+    box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.1), 0 3px 5px 0 rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.09);
+    color: #474747;
+    text-align: left;
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.settings.open .menu {
+    display: block;
+}
