@@ -57,7 +57,7 @@ html, body {
     white-space: nowrap;
 }
 .header th {
-    cursor: move;
+    /*cursor: move;*/
 }
 .header th:first-of-type{
     cursor:default;
